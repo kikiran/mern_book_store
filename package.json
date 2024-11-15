@@ -1,0 +1,33 @@
+{
+	"name": "mern_book_store",
+	"version": "1.0.0",
+	"description": "Book store app using MERN",
+	"main": "server.js",
+	"type": "module",
+	"scripts": {
+		"dev": "nodemon server/server.js",
+		"start": "node server/server.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kikiran/mern_book_store.git"
+	},
+	"keywords": [
+		"MERN",
+		"Stack"
+	],
+	"author": "KIRANKUMAR",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/kikiran/mern_book_store/issues"
+	},
+	"homepage": "https://github.com/kikiran/mern_book_store#readme",
+	"dependencies": {
+		"dotenv": "^16.4.5",
+		"express": "^4.21.1",
+		"mongoose": "^8.8.1"
+	},
+	"devDependencies": {
+		"nodemon": "^3.1.7"
+	}
+}
