@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
+import books from "./routes/bookRoutes.js";
 dotenv.config();
 
 const port = process.env.PORT || 8089;
@@ -11,9 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/", async (req, res) => {
-	res.status(200).json("Welcome to Book Store app");
-});
+app.use("/api/books", books);
 
 const startServer = () => {
 	try {

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Book from "../models/bookSchema";
+import Book from "../models/bookSchema.js";
 
 export const getBooks = async (req, res) => {
 	try {
