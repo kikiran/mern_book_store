@@ -23,17 +23,23 @@ export const createBook = createAsyncThunk("createBook", async (newBook) => {
 export const deleteBook = createAsyncThunk(
 	"deleteBook",
 	async (bookId, { rejectWithValue }) => {
-		const res = await fetch(`${baseURL}/${bookId}`, {
-			method: "DELETE",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		});
-		if (!res.ok) {
-			const errorData = await res.json();
-			return rejectWithValue(errorData);
+		try {
+			const res = await fetch(`${baseURL}/${bookId}`, {
+				method: "DELETE",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+			if (!res.ok) {
+				const errorData = await res.json();
+				return rejectWithValue(errorData);
+			}
+			return bookId;
+		} catch (error) {
+			return rejectWithValue({
+				message: error.message || "Something went wrong",
+			});
 		}
-		return bookId;
 	}
 );
 
@@ -65,7 +71,9 @@ const bookSlice = createSlice({
 		});
 		builder.addCase(createBook.fulfilled, (state, action) => {
 			state.isLoading = false;
-			state.data.push(action.payload);
+			if (Array.isArray(state.data)) {
+				state.data.push(action.payload);
+			}
 		});
 		builder.addCase(createBook.rejected, (state, action) => {
 			state.isLoading = false;
@@ -79,7 +87,9 @@ const bookSlice = createSlice({
 		});
 		builder.addCase(deleteBook.fulfilled, (state, action) => {
 			state.isLoading = false;
-			state.data.filter((book) => book.id !== action.payload);
+			if (Array.isArray(state.data)) {
+				state?.data?.filter((book) => book.id !== action.payload);
+			}
 		});
 		builder.addCase(deleteBook.rejected, (state, action) => {
 			state.isLoading = false;

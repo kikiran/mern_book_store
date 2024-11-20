@@ -8,13 +8,18 @@ import { Search, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { IndianRupee } from "lucide-react";
+import Modal from "@/components/ui/modal";
 
 export default function Home() {
 	const [searchTerm, setSearchTerm] = useState("");
 	const dispatch = useDispatch();
 	const { isLoading, data, isError } = useSelector((state) => state.book);
 	const router = useRouter();
-	console.log("================================", data);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+
+	const openModal = () => setIsModalOpen(true);
+	const closeModal = () => setIsModalOpen(false);
+
 	useEffect(() => {
 		dispatch(fetchBooks());
 	}, [dispatch]);
@@ -31,7 +36,7 @@ export default function Home() {
 
 	const deleteBookHandler = (bookId) => {
 		dispatch(deleteBook(bookId));
-		// router.push("/");
+		router.push("/");
 	};
 
 	// if (isError) return <div>Error: Something went wrong</div>;
@@ -97,7 +102,13 @@ export default function Home() {
 										</span>
 									</div>
 								</CardContent>
-								<CardFooter>
+								<CardFooter className="gap-4">
+									<Button
+										className="w-full bg-orange-400"
+										onClick={openModal}
+									>
+										Update
+									</Button>
 									<Button
 										className="w-full"
 										onClick={() =>
@@ -116,6 +127,16 @@ export default function Home() {
 					)}
 				</div>
 			</div>
+			<Modal isOpen={isModalOpen} closeModal={closeModal}>
+				<h2 className="text-xl font-semibold mb-4">Modal Title</h2>
+				<p>This is a simple modal using Tailwind CSS and React!</p>
+				<button
+					onClick={closeModal}
+					className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+				>
+					Close
+				</button>
+			</Modal>
 		</div>
 	);
 }
