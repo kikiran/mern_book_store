@@ -53,7 +53,7 @@ export const updateBook = async (req, res) => {
 		});
 	}
 	try {
-		const updateBook = await Book.findByIdAndUpdate(id, book, {
+		const updatedBook = await Book.findByIdAndUpdate(id, book, {
 			new: true,
 			runValidators: true,
 		});
@@ -61,6 +61,7 @@ export const updateBook = async (req, res) => {
 		res.status(200).json({
 			success: true,
 			message: "Book updated successfully",
+			data: updatedBook,
 		});
 	} catch (error) {
 		res.status(500).json({
@@ -103,7 +104,7 @@ export const getBookById = async (req, res) => {
 	}
 
 	try {
-		const book = await Book.findOne({});
+		const book = await Book.findById(id);
 		res.status(200).json({ success: true, data: book });
 	} catch (error) {
 		res.status(500).json({

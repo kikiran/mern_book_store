@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
-console.log("API_URLAPI_URLAPI_URLAPI_URLAPI_URL", process);
 export const fetchBooks = createAsyncThunk("fetchBooks", async () => {
 	const res = await fetch(baseURL);
 	if (!res.ok) {
@@ -43,11 +42,39 @@ export const deleteBook = createAsyncThunk(
 	}
 );
 
+export const fetchBookById = createAsyncThunk(
+	"fetchBookById",
+	async (bookId) => {
+		const res = await fetch(`${baseURL}/${bookId}`);
+
+		if (!res.ok) throw new Error("Book Id not found");
+
+		return res.json();
+	}
+);
+
+export const updateBook = createAsyncThunk(
+	"updateBook",
+	async ({ bookId, newBook }) => {
+		const res = await fetch(`${baseURL}/${bookId}`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(newBook),
+		});
+
+		if (!res.ok) throw new Error(`Book ${bookId} not found`);
+		return res.json();
+	}
+);
+
 const bookSlice = createSlice({
 	name: "book",
 	initialState: {
 		isLoading: false,
 		data: [],
+		selectedBook: [],
 		isError: false,
 	},
 
@@ -64,6 +91,19 @@ const bookSlice = createSlice({
 			state.isError = true;
 		});
 
+		//getBookById
+		builder.addCase(fetchBookById.pending, (state, action) => {
+			state.isLoading = true;
+		});
+		builder.addCase(fetchBookById.fulfilled, (state, action) => {
+			state.isLoading = false;
+			state.selectedBook = action.payload;
+		});
+		builder.addCase(fetchBookById.rejected, (state, action) => {
+			state.isLoading = true;
+			state.isError = true;
+		});
+
 		//create book
 		builder.addCase(createBook.pending, (state, action) => {
 			state.isLoading = true;
@@ -76,6 +116,27 @@ const bookSlice = createSlice({
 			}
 		});
 		builder.addCase(createBook.rejected, (state, action) => {
+			state.isLoading = false;
+			state.isError = action.payload || "Failed to add book";
+		});
+
+		//update Book
+		builder.addCase(updateBook.pending, (state, action) => {
+			state.isLoading = true;
+			state.isError = true;
+		});
+		builder.addCase(updateBook.fulfilled, (state, action) => {
+			state.isLoading = false;
+			if (Array.isArray(state.data)) {
+				const index = state.data.findIndex(
+					(book) => book.id === action.payload._id
+				);
+				if (index !== -1) {
+					state.data[index] = action.payload;
+				}
+			}
+		});
+		builder.addCase(updateBook.rejected, (state, action) => {
 			state.isLoading = false;
 			state.isError = action.payload || "Failed to add book";
 		});

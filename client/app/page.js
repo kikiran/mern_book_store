@@ -1,6 +1,11 @@
 "use client";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteBook, fetchBooks } from "./redux/slice/bookSlice";
+import {
+	deleteBook,
+	fetchBookById,
+	fetchBooks,
+	updateBook,
+} from "./redux/slice/bookSlice";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,16 +18,38 @@ import Modal from "@/components/ui/modal";
 export default function Home() {
 	const [searchTerm, setSearchTerm] = useState("");
 	const dispatch = useDispatch();
-	const { isLoading, data, isError } = useSelector((state) => state.book);
+	const { isLoading, data, selectedBook, isError } = useSelector(
+		(state) => state.book
+	);
 	const router = useRouter();
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [formValues, setFormValues] = useState({
+		title: "",
+		author: "",
+		price: "",
+		published: "",
+	});
 
-	const openModal = () => setIsModalOpen(true);
+	const openModal = (bookId) => {
+		setIsModalOpen(true);
+		dispatch(fetchBookById(bookId));
+	};
 	const closeModal = () => setIsModalOpen(false);
 
 	useEffect(() => {
 		dispatch(fetchBooks());
 	}, [dispatch]);
+
+	useEffect(() => {
+		if (selectedBook) {
+			setFormValues({
+				title: selectedBook?.data?.title,
+				author: selectedBook?.data?.author,
+				price: selectedBook?.data?.price,
+				published: selectedBook?.data?.published,
+			});
+		}
+	}, [selectedBook]);
 
 	const filteredBooks = data?.data?.filter(
 		(book) =>
@@ -39,7 +66,29 @@ export default function Home() {
 		router.push("/");
 	};
 
-	// if (isError) return <div>Error: Something went wrong</div>;
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		console.log("formValues", selectedBook);
+
+		dispatch(
+			updateBook({ bookId: selectedBook?.data?._id, newBook: formValues })
+		)
+			.unwrap()
+			.then((result) => {
+				console.log("Book updated successfully:", result);
+				setIsModalOpen(false);
+				dispatch(fetchBooks());
+			})
+			.catch((error) => {
+				console.error("Failed to update book:", error.message);
+			});
+		router.push("/");
+	};
+
+	const handleChange = (e) => {
+		const { name, value } = e.target;
+		setFormValues((prev) => ({ ...prev, [name]: value }));
+	};
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-100 p-8">
@@ -105,7 +154,7 @@ export default function Home() {
 								<CardFooter className="gap-4">
 									<Button
 										className="w-full bg-orange-400"
-										onClick={openModal}
+										onClick={() => openModal(book._id)}
 									>
 										Update
 									</Button>
@@ -128,14 +177,80 @@ export default function Home() {
 				</div>
 			</div>
 			<Modal isOpen={isModalOpen} closeModal={closeModal}>
-				<h2 className="text-xl font-semibold mb-4">Modal Title</h2>
-				<p>This is a simple modal using Tailwind CSS and React!</p>
-				<button
-					onClick={closeModal}
-					className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-				>
-					Close
-				</button>
+				<h2 className="text-xl font-semibold mb-4">Update Book</h2>
+				{selectedBook && selectedBook?.data?.length !== 0 ? (
+					<form onSubmit={handleSubmit}>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">
+								Title
+							</label>
+							<input
+								type="text"
+								name="title"
+								value={formValues.title}
+								onChange={handleChange}
+								className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								required
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">
+								Author
+							</label>
+							<input
+								type="text"
+								name="author"
+								value={formValues.author}
+								onChange={handleChange}
+								className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								required
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">
+								Price
+							</label>
+							<input
+								type="number"
+								name="price"
+								value={formValues.price}
+								onChange={handleChange}
+								className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								required
+							/>
+						</div>
+						<div className="mb-4">
+							<label className="block text-sm font-medium text-gray-700">
+								Published Year
+							</label>
+							<input
+								type="number"
+								name="published"
+								value={formValues.published}
+								onChange={handleChange}
+								className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+								required
+							/>
+						</div>
+						<div className="flex justify-end gap-4">
+							<button
+								type="button"
+								onClick={closeModal}
+								className="px-4 py-2 bg-gray-300 rounded-md text-gray-700 hover:bg-gray-400"
+							>
+								Cancel
+							</button>
+							<button
+								type="submit"
+								className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+							>
+								Update
+							</button>
+						</div>
+					</form>
+				) : (
+					"No content"
+				)}
 			</Modal>
 		</div>
 	);
